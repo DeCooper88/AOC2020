@@ -1,29 +1,33 @@
-from helpers import file_reader
-from itertools import combinations
+import itertools
 import math
+from helpers import file_reader
+from time import perf_counter
 
 
 def compute(data, entries):
-    clean_data = [int(x) for x in data]
-    unique_combos = combinations(clean_data, entries)
-    for combo in unique_combos:
-        if sum(combo) == 2020:
-            return math.prod(combo)
+    unique_combinations = itertools.combinations(data, entries)
+    for combination in unique_combinations:
+        if sum(combination) == 2020:
+            return math.prod(combination)
     return None
 
 
 if __name__ == '__main__':
-    t0_raw = """1721
-    979
-    366
-    299
-    675
-    1456
-    """
-    t0 = [x.strip() for x in t0_raw.strip().split('\n')]
+    t0_raw = "1721 979 366 299 675 1456"
+    t0 = [int(x.strip()) for x in t0_raw.strip().split(' ')]
+    # test part 1
     assert compute(t0, 2) == 514579
+    # test part 2
     assert compute(t0, 3) == 241861950
 
-    day1 = file_reader('2020_1', output='lines')
-    print("solution part 1:", compute(day1, 2))
-    print("solution part 2:", compute(day1, 3))
+    day1_raw = file_reader('2020_1', output='lines')
+    day1 = [int(x) for x in day1_raw]
+    start = perf_counter()
+    p1 = compute(day1, 2)
+    middle = perf_counter()
+    p2 = compute(day1, 3)
+    end = perf_counter()
+    t1 = int((middle - start) * 1000)
+    t2 = int((end - middle) * 1000)
+    print(f"solution part 1: {p1} ({t1}ms)")
+    print(f"solution part 2: {p2} ({t2}ms)")
