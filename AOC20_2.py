@@ -7,9 +7,9 @@ Password = namedtuple("Password", "low high char content")
 
 def translate_password(pw_string):
     """Convert string to namedtuple: Password"""
-    mapper = {'-': ',', ' ': ',', ':': ''}
+    mapper = {"-": ",", " ": ",", ":": ""}
     clean_pw_string = translator(pw_string, mapper)
-    mi, ma, ch, name = clean_pw_string.split(',')
+    mi, ma, ch, name = clean_pw_string.split(",")
     return Password(int(mi), int(ma), ch, name)
 
 
@@ -47,19 +47,19 @@ def compute_two(data):
     return valid
 
 
-if __name__ == '__main__':
-    t0 = '1-3 a: abcde'  # True, True
-    t1 = '1-3 b: cdefg'  # False, False
-    t2 = '2-9 c: ccccccccc'  # True, False
-    t3 = '7-15 w: wwwwwcqwwwwwwwww'  # True, True
-    t4 = '13-14 s: wznksvkfvfskfs'  # False, True
+if __name__ == "__main__":
+    t0 = "1-3 a: abcde"  # True, True
+    t1 = "1-3 b: cdefg"  # False, False
+    t2 = "2-9 c: ccccccccc"  # True, False
+    t3 = "7-15 w: wwwwwcqwwwwwwwww"  # True, True
+    t4 = "13-14 s: wznksvkfvfskfs"  # False, True
 
     test_cases = [t0, t1, t2, t3, t4]
 
     assert compute_one(test_cases) == 3
     assert compute_two(test_cases) == 3
 
-    day2 = file_reader('2020_2', output='lines')
+    day2 = file_reader("inputs/2020_2", output="lines")
 
     start = perf_counter()
     p1 = compute_one(day2)

@@ -1,4 +1,4 @@
-def file_reader(file, output='one_string'):
+def file_reader(file, output="one_string"):
     """
     Return contents file as variable.
     output:
@@ -7,14 +7,14 @@ def file_reader(file, output='one_string'):
         'commas' = list of file content split on ','
     """
     with open(file) as f:
-        if output == 'one_string':
+        if output == "one_string":
             content = f.read()
             return content.strip()
-        elif output == 'lines':
+        elif output == "lines":
             return [x.strip() for x in f.readlines()]
-        elif output == 'commas':
+        elif output == "commas":
             raw = f.read()
-            return [x.strip() for x in raw.split(',')]
+            return [x.strip() for x in raw.split(",")]
 
 
 def translator(input_string, map_table):

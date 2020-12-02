@@ -12,15 +12,15 @@ def compute(data, entries):
     return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     t0_raw = "1721 979 366 299 675 1456"
-    t0 = [int(x.strip()) for x in t0_raw.strip().split(' ')]
+    t0 = [int(x.strip()) for x in t0_raw.strip().split(" ")]
     # test part 1
     assert compute(t0, 2) == 514579
     # test part 2
     assert compute(t0, 3) == 241861950
 
-    day1_raw = file_reader('2020_1', output='lines')
+    day1_raw = file_reader("inputs/2020_1", output="lines")
     day1 = [int(x) for x in day1_raw]
     start = perf_counter()
     p1 = compute(day1, 2)
