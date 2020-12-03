@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # test part 2
     assert compute(t0, 3) == 241861950
 
-    day1_raw = file_reader("inputs/2020_1", output="lines")
+    day1_raw = file_reader("inputs/2020_1.txt", output="lines")
     day1 = [int(x) for x in day1_raw]
     start = perf_counter()
     p1 = compute(day1, 2)

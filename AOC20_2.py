@@ -59,7 +59,7 @@ if __name__ == "__main__":
     assert compute_one(test_cases) == 3
     assert compute_two(test_cases) == 3
 
-    day2 = file_reader("inputs/2020_2", output="lines")
+    day2 = file_reader("inputs/2020_2.txt", output="lines")
 
     start = perf_counter()
     p1 = compute_one(day2)
