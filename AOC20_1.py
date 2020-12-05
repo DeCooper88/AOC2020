@@ -1,10 +1,11 @@
 import itertools
 import math
 from helpers import file_reader
+from typing import List, Optional
 from time import perf_counter
 
 
-def compute(data, entries):
+def compute(data: List[int], entries: int) -> Optional[int]:
     unique_combinations = itertools.combinations(data, entries)
     for combination in unique_combinations:
         if sum(combination) == 2020:
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     # test part 2
     assert compute(t0, 3) == 241861950
 
-    day1_raw = file_reader("inputs/2020_1.txt", output="lines")
+    day1_raw: List[str] = file_reader("inputs/2020_1.txt", output="lines")
     day1 = [int(x) for x in day1_raw]
     start = perf_counter()
     p1 = compute(day1, 2)

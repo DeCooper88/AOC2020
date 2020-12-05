@@ -1,19 +1,24 @@
 from helpers import file_reader, translator
-from collections import namedtuple
+from typing import NamedTuple, List
 from time import perf_counter
 
-Password = namedtuple("Password", "low high char content")
+
+class Password(NamedTuple):
+    low: int
+    high: int
+    char: str
+    content: str
 
 
-def translate_password(pw_string):
+def translate_password(password: str) -> Password:
     """Convert string to namedtuple: Password"""
     mapper = {"-": ",", " ": ",", ":": ""}
-    clean_pw_string = translator(pw_string, mapper)
+    clean_pw_string = translator(password, mapper)
     mi, ma, ch, name = clean_pw_string.split(",")
     return Password(int(mi), int(ma), ch, name)
 
 
-def contains_one(password):
+def contains_one(password: Password) -> bool:
     """
     Return True if password contains correct character
     in only one of the two given position.
@@ -26,7 +31,7 @@ def contains_one(password):
     return valid == 1
 
 
-def compute_one(data):
+def compute_one(data: List[str]) -> int:
     """Return answer part 1 of AoC day 2"""
     valid = 0
     for line in data:
@@ -37,7 +42,7 @@ def compute_one(data):
     return valid
 
 
-def compute_two(data):
+def compute_two(data: List[str]) -> int:
     """Return answer part 2 of AoC day 2"""
     valid = 0
     for line in data:
@@ -59,14 +64,14 @@ if __name__ == "__main__":
     assert compute_one(test_cases) == 3
     assert compute_two(test_cases) == 3
 
-    day2 = file_reader("inputs/2020_2.txt", output="lines")
+    day2: List[str] = file_reader("inputs/2020_2.txt", output="lines")
 
     start = perf_counter()
     p1 = compute_one(day2)
     middle = perf_counter()
     p2 = compute_two(day2)
     end = perf_counter()
-    t1 = int((middle - start) * 1000)
-    t2 = int((end - middle) * 1000)
-    print(f"solution part 1: {p1} ({t1}ms)")
-    print(f"solution part 2: {p2} ({t2}ms)")
+    time1 = int((middle - start) * 1000)
+    time2 = int((end - middle) * 1000)
+    print(f"solution part 1: {p1} ({time1}ms)")
+    print(f"solution part 2: {p2} ({time2}ms)")
