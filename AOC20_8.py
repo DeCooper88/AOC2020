@@ -1,5 +1,7 @@
 from helpers import file_reader
 from typing import List, NamedTuple, Union
+from copy import copy
+import time
 
 
 class Instruction(NamedTuple):
@@ -22,71 +24,81 @@ def get_instruction(data: str) -> Instruction:
     return Instruction(op, int(arg))
 
 
-def compute(data: List[str]) -> int:
-    """
-    Return the value accumulator has when the program visits a location
-    it had already visited earlier in the program. Is answer part 1.
-    """
-    instructions = [get_instruction(x) for x in data]
-    visited = set()
-    accumulator = position = 0
-    while position not in visited:
-        visited.add(position)
-        instruction = instructions[position]
-        if instruction.operation == "nop":
-            position += 1
-        elif instruction.operation == "acc":
-            accumulator += instruction.argument
-            position += 1
-        elif instruction.operation == "jmp":
-            position += instruction.argument
-    return accumulator
+class GameConsole:
+    def __init__(self, program_lines: List[str]) -> None:
+        self.lines: List[Instruction] = [get_instruction(x) for x in program_lines]
 
+    def first_repeated_line(self) -> int:
+        """
+        Return the value accumulator has when the program visits a location
+        it had already visited earlier in the program. Is answer day 8 part 1.
+        """
+        visited = set()
+        accumulator = position = 0
+        while position not in visited:
+            visited.add(position)
+            instruction = self.lines[position]
+            if instruction.operation == "nop":
+                position += 1
+            elif instruction.operation == "acc":
+                accumulator += instruction.argument
+                position += 1
+            elif instruction.operation == "jmp":
+                position += instruction.argument
+        return accumulator
 
-def validate_program(instructions: List[Instruction]) -> Union[int, bool]:
-    """
-    Return accumulator value if the program reaches it's last line,
-    else return False.
-    """
-    final_line = len(instructions) - 1
-    visited = set()
-    accumulator = position = 0
-    while position not in visited:
-        visited.add(position)
-        instruction = instructions[position]
-        if instruction.operation == "nop":
-            position += 1
-        elif instruction.operation == "acc":
-            accumulator += instruction.argument
-            position += 1
-        elif instruction.operation == "jmp":
-            position += instruction.argument
-        if position == final_line:
-            i, v = instructions[final_line]
-            if i == "acc":
-                accumulator += v
-            break
-    return accumulator if position == final_line else False
+    @staticmethod
+    def validate_program(instructions: List[Instruction]) -> Union[int, bool]:
+        """
+        Return accumulator value if the program reaches it's last line,
+        else return False.
+        """
+        final_line = len(instructions) - 1
+        visited = set()
+        accumulator = position = 0
+        while position not in visited:
+            visited.add(position)
+            instruction = instructions[position]
+            if instruction.operation == "nop":
+                position += 1
+            elif instruction.operation == "acc":
+                accumulator += instruction.argument
+                position += 1
+            elif instruction.operation == "jmp":
+                position += instruction.argument
+            if position == final_line:
+                final = instructions[final_line]
+                if final.operation == "acc":
+                    accumulator += final.argument
+                break
+        return accumulator if position == final_line else False
 
+    def find_wrong_line(self) -> Union[int, bool]:
+        """
+        Find line for which the Instruction operation needs to be changed. It
+        can be changed from 'jmp' to 'nop' or from 'nop' to 'jmp'.
+        Fix the line to ensure the program terminates (reaches final line) and
+        return the accumulator value. Is answer day 8 part 2.
+        """
+        for line, instruction in enumerate(self.lines):
+            cur_program = copy(self.lines)
+            if instruction.operation == "jmp":
+                cur_program[line] = Instruction("nop", instruction.argument)
+            elif instruction.operation == "nop":
+                cur_program[line] = Instruction("jmp", instruction.argument)
+            outcome = self.validate_program(cur_program)
+            if outcome:
+                return outcome
+        return False
 
-def compute_two(data: List[str]) -> Union[int, bool]:
-    """
-    Find line for which the Instruction operation needs to be changed. It
-    can be changed from 'jmp' to 'nop' or from 'nop' to 'jmp'.
-    Fix the line to ensure the program terminates (reaches final line) and
-    return the accumulator value.
-    """
-    for line, inst in enumerate(data):
-        cur_instruction = get_instruction(inst)
-        instructions = [get_instruction(x) for x in data]
-        if cur_instruction.operation == "jmp":
-            instructions[line] = Instruction("nop", cur_instruction.argument)
-        elif cur_instruction.operation == "nop":
-            instructions[line] = Instruction("jmp", cur_instruction.argument)
-        outcome = validate_program(instructions)
-        if outcome:
-            return outcome
-    return False
+    def __len__(self):
+        return len(self.lines)
+
+    def __repr__(self) -> str:
+        program = ""
+        for i, line in enumerate(self.lines):
+            program += f"Instruction[{i}] -> operation={line.operation}, argument={line.argument}\n"
+        return program
 
 
 if __name__ == "__main__":
@@ -104,9 +116,22 @@ if __name__ == "__main__":
     # TODO: not used, change into test
     # t1 = ['nop +0', 'acc +1', 'jmp +4', 'acc +3', 'jmp -3', 'acc -99', 'acc +1', 'nop -4', 'acc +6']
 
-    assert compute(t0) == 5
-    assert compute_two(t0) == 8
+    gc0 = GameConsole(t0)
+    assert gc0.first_repeated_line() == 5
+    assert gc0.find_wrong_line() == 8
 
-    day8 = file_reader("inputs/2020_8.txt", output="lines")
-    print(compute(day8))
-    print(compute_two(day8))
+    start_prep = time.perf_counter()
+    day8_input = file_reader("inputs/2020_8.txt", output="lines")
+    end_prep = time.perf_counter()
+    day8 = GameConsole(day8_input)
+    p1 = day8.first_repeated_line()
+    part_1 = time.perf_counter()
+    p2 = day8.find_wrong_line()
+    end = time.perf_counter()
+    prep_time = round((end_prep - start_prep) * 1000, 1)
+    time_p1 = round((part_1 - end_prep) * 1000, 1)
+    time_p2 = round((end - part_1) * 1000, 1)
+    total_time = round(prep_time + time_p1 + time_p2, 1)
+    print(f"Solution part 1: {p1} ({time_p1}ms)")
+    print(f"Solution part 2: {p2} ({time_p2}ms)")
+    print(f"total runtime including importing and cleaning data: {total_time}ms")
