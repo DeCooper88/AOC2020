@@ -105,14 +105,22 @@ if __name__ == "__main__":
     assert compute_two(t0_graph, "shiny gold") == 32
     assert compute_two(t1_graph, "shiny gold") == 126
 
-    start = time.perf_counter()
+    start_prep = time.perf_counter()
     day7 = file_reader("inputs/2020_7.txt", output="lines")
     # TODO: Time p1 and p2 separately
+    end_prep = time.perf_counter()
     day7_graph = build_graph(day7)
+    gr_time = time.perf_counter()
     p1 = compute_one(day7_graph, "shiny gold")
+    end_p1 = time.perf_counter()
     p2 = compute_two(day7_graph, "shiny gold")
     end = time.perf_counter()
-    run_time = round((end - start) * 1000, 1)
-    print("solution part 1:", p1)
-    print("solution part 2:", p2)
-    print(f"runtime: {run_time}ms")
+    prep = round((end_prep - start_prep) * 1000, 1)
+    graph_time = round((gr_time - end_prep) * 1000, 1)
+    time1 = round((end_p1 - gr_time) * 1000, 1)
+    time2 = round((end - end_p1) * 1000, 1)
+    total = round(prep + graph_time + time1 + time2, 1)
+    print(f"build graph in {graph_time}ms")
+    print(f"solution part 1: {p1} ({time1}ms)")
+    print(f"solution part 2: {p2} ({time2}ms)")
+    print(f"total runtime: {total}ms ({prep}ms prep)")
