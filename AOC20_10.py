@@ -74,6 +74,20 @@ def compute_two(data: List[int]) -> Union[int, str]:
 
 
 def compute_new(data: List[int]) -> int:
+    """
+    Return possible number of adapter combinations (routes) to get from
+    charging outlet (source) to device. The algorithm uses Breadth First
+    Search and for every adapter keeps track of the number of routes that
+    are possible to get to it.
+    Example : [0, 1, 4, 5, 6, 7, 10]
+    0 is the source
+    1 it is only possible to get to it from 0, so 1 route
+    4 it is only possible to get to it from 1, so 1 route
+    5 it is only possible to get to it from 4, so 1 route
+    6 it is possible to get here from 4 or 5, so 2 routes
+    7 it is
+
+    """
     adapters = sorted(data)
     graph = build_graph(adapters)
     frontier: Deque[int] = deque()
