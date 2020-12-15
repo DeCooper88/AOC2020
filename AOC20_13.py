@@ -4,7 +4,7 @@ import heapq
 
 
 def trips(time, limit):
-    # TODO: helper can prob be removed
+    # TODO: helper can probably be removed
     all_times = []
     for t in range(0, limit, time):
         all_times.append(t)
@@ -148,7 +148,7 @@ def compute_fast(data):
             if count == bus_count - 1:
                 return current_time
         current_time += step
-        print(current_time)
+        # print(current_time)
         # if current_time > 100000000000:
         #     return "This is insane!"
 
@@ -172,13 +172,21 @@ t2 = ['67', '7', '59', '61']  # 754018
 t3 = ['67', 'x', '7', '59', '61']  # 779210
 t4 = ['67', '7', 'x', '59', '61']  # 1261476
 t5 = ['1789', '37', '47', '1889']  # 1202161486
+t6 = ['7', 'x', '3', 'x', 'x', '11', 'x', '5']
 
-assert compute_two(t0_buses) == 1068781
-assert compute_two(t1) == 3417
-assert compute_two(t2) == 754018
-assert compute_two(t3) == 779210
-assert compute_two(t4) == 1261476
-assert compute_two(t5) == 1202161486
+
+# assert compute_two(t0_buses) == 1068781
+# assert compute_two(t1) == 3417
+# assert compute_two(t2) == 754018
+# assert compute_two(t3) == 779210
+# assert compute_two(t4) == 1261476
+# assert compute_two(t5) == 1202161486
+
+# print(compute_two(t0_buses))
+# print(compute_two(t1))
+# print(compute_two(t2))
+# print(compute_two(t6))
+
 
 # print(t0_buses)
 # print(compute_two(t0_buses))
@@ -195,16 +203,64 @@ assert compute_two(t5) == 1202161486
 day13_raw = file_reader('inputs/2020_13.txt', output='lines')
 day13_time = int(day13_raw[0])
 day13_buses = [bus for bus in day13_raw[1].split(',')]
-day13_clean = [int(bus) for bus in day13_raw[1].split(',') if bus != 'x']
-day13_tups = [(int(bus), i) for i, bus in enumerate(day13_buses) if bus != 'x']
-assert compute(t0_time, t0_clean) == 295
-print("part 1 answer:", compute(day13_time, day13_clean))
-print("To get solution for part 2 un-comment lines 206-211")
-print("warning: it will take 3+ minutes!!")
+# day13_clean = [int(bus) for bus in day13_raw[1].split(',') if bus != 'x']
+# day13_tups = [(int(bus), i) for i, bus in enumerate(day13_buses) if bus != 'x']
+# assert compute(t0_time, t0_clean) == 295
+# print("part 1 answer:", compute(day13_time, day13_clean))
+# print("To get solution for part 2 un-comment lines 206-211")
+# print("WARNING: it will take 3+ minutes!!")
 
 # start = perf_counter()
 # TODO: run the below line to get the answer for part 2 (WARNING: will take 3+ minutes!!)
+# TODO: only later realized only prime number seem to be used. Impact?
 # p2 = compute_fast(day13_buses)
 # end = perf_counter()
 # print(p2)
 # print(end - start)
+
+
+def first_match(other, index_other, base, base_index=0, max_size=1000000):
+    """
+    Find first match of . Always return the value based
+    """
+    # step = max(other, base)
+    step = other
+    index_diff = index_other - base_index
+    for value in range(step, max_size, step):
+        base_value = value - index_diff
+        if base_value % base == 0:
+            return value - index_diff
+
+
+def bus_match(data):
+    first_bus = int(data[0])
+    later_buses = [(int(bus), i) for i, bus in enumerate(data[1:], start=1) if bus != 'x']
+    bus_order = sorted(later_buses, key=lambda x: x[0], reverse=True)
+    biggest = bus_order[0]
+    time = first_match(biggest[0], biggest[1], first_bus)
+    step_size = first_bus * biggest[0]
+    for bus in bus_order[1:]:
+        while True:
+            bus_time = time + bus[1]
+            if bus_time % bus[0] == 0:
+                time = bus_time - bus[1]
+                step_size = step_size * bus[0]
+                # print(bus, time, step_size)
+                break
+            time += step_size
+    return time
+
+
+assert first_match(13, 1, 7) == 77
+assert first_match(59, 4, 7) == 350
+assert first_match(31, 6, 7) == 56
+assert first_match(19, 7, 7) == 126
+
+print(bus_match(t0_buses))
+print(bus_match(t1))
+print(bus_match(t2))
+print(bus_match(t3))
+print(bus_match(t4))
+print(bus_match(t6))
+
+print(bus_match(day13_buses))
