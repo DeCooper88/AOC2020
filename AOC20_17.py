@@ -9,6 +9,12 @@ def grid_size(initial_size, cycles):
     return f, r, c
 
 
+def grid_size_4d(initial_size, cycles):
+    z = 1 + (cycles * 2)
+    f = r = c = initial_size + (cycles * 2)
+    return z, f, r, c
+
+
 # def full_grid(z, y, x):
 #     grid = [[['.' for _ in range(x + 1)] for _ in range(y + 1)] for _ in range(z)]
 #     # print(grid)
@@ -19,6 +25,15 @@ def grid_size(initial_size, cycles):
 
 
 def get_slice(location):
+    slice = []
+    for loc in location:
+        left = max(loc - 1, 0)
+        right = loc + 2
+        slice.append((left, right))
+    return slice
+
+
+def get_slice_4d(location):
     slice = []
     for loc in location:
         left = max(loc - 1, 0)
@@ -55,17 +70,69 @@ def create_grid(data, cycles):
     return grid
 
 
+def create_grid_4d(data, cycles):
+    z, f, r, c = grid_size_4d(len(data), cycles)
+    empty = [[[['.' for _ in range(c)] for _ in range(r)] for _ in range(f)] for _ in range(z)]
+    grid = np.array(empty)
+    start_zap = len(grid) // 2
+    start_floor = start_row = start_col = start_zap
+    for row in range(len(data[0])):
+        for col in range(len(data[0])):
+            if data[row][col] == '#':
+                grid[start_zap, start_floor, start_row + row, start_col + col] = '#'
+    return grid
+
+
+def compute_two(data, cycles=6):
+    # turn initial data into grid
+    initial = initial_grid(data)
+    # create grid
+    grid = create_grid_4d(initial, cycles)
+    zappers = len(grid)
+    height = depth = width = len(grid[0])
+    for c in range(cycles):
+        make_passive = []
+        make_active = []
+        for zap in range(zappers):
+            for floor in range(height):
+                for row in range(depth):
+                    for col in range(width):
+                        (a, b), (c, d), (e, f), (g, h) = get_slice_4d((zap, floor, row, col))
+                        count = np.count_nonzero(grid[a:b, c:d, e:f, g:h] == '#')
+                        cell = grid[zap, floor, row, col]
+                        if cell == '#':
+                            if count - 1 not in {2, 3}:
+                                make_passive.append((zap, floor, row, col))
+                        elif cell == '.':
+                            if count == 3:
+                                make_active.append((zap, floor, row, col))
+        # print(len(make_passive))
+        # print(make_passive)
+        # print(len(make_active))
+        # print(make_active)
+        for pas in make_passive:
+            z, f, r, c = pas
+            grid[z, f, r, c] = '.'
+        for act in make_active:
+            z, f, r, c = act
+            grid[z, f, r, c] = '#'
+    # print(grid)
+    return np.count_nonzero(grid == '#')
+
+
 def compute(data, cycles=6):
     # turn initial data into grid
     initial = initial_grid(data)
     # create grid
     grid = create_grid(initial, cycles)
+    height = len(grid)
+    depth = width = len(grid[0])
     for c in range(cycles):
         make_passive = []
         make_active = []
-        for floor in range(len(grid)):
-            for row in range(len(grid[0])):
-                for col in range(len(grid[0][0])):
+        for floor in range(height):
+            for row in range(depth):
+                for col in range(width):
                     (a, b), (c, d), (e, f) = get_slice((floor, row, col))
                     count = np.count_nonzero(grid[a:b, c:d, e:f] == '#')
                     if grid[floor, row, col] == '#':
@@ -138,45 +205,12 @@ day17 = """
 ..#####.
 """
 
-# t0_grid = create_grid(t0)
-# print(t0_grid)
-# print(t0_grid[1, 1])
-# print(t0_grid[:2, :2])
-# print(t0_grid[2, :])
-# t0_grid[1, :] = 'X'
-# print(t0_grid)
-# # condition = t0_grid == '#'
-# print()
-# print(np.count_nonzero(t0_grid == '#'))
-# print(np.count_nonzero(t0_grid[:2, :2] == '#'))
-
-# t1 = np.zeros((3, 5, 5))
-# print(t1)
-# print()
-
-
-
-# for i, line in enumerate(t0_grid):
-#     print(f"floor {i}")
-#     print(line)
-# print(np.count_nonzero(t0_grid == '#'))
-
-# print()
-# print(t0_grid[0:4, 0:2, 0:2])
-# print(np.count_nonzero(t0_grid[0:4, 0:2, 0:2] == '#'))
-# print()
-# (a, b), (c, d), (e, f) = get_slice((1, 1, 1))
-# print(t0_grid[a:b, c:d, e:f])
-# print(np.count_nonzero(t0_grid[a:b, c:d, e:f] == '#'))
-#
-# print()
-# (a, b), (c, d), (e, f) = get_slice((1, 2, 2))
-# print(t0_grid[a:b, c:d, e:f])
-# print(np.count_nonzero(t0_grid[a:b, c:d, e:f] == '#'))
 
 st = perf_counter()
 assert compute(t0, cycles=6) == 112
 p1 = compute(day17, cycles=6)
+p2 = compute_two(day17, cycles=6)
 end = perf_counter()
 print(f"solution part 1: {p1}")
-print(f"runtime: {round((end - st) *1000, 1)}ms")
+print(f"solution part 2: {p2}")
+print(f"runtime: {round((end - st), 1)}secs")
