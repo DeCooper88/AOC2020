@@ -5,6 +5,11 @@ from time import perf_counter
 
 
 def compute(data: List[str]) -> str:
+    """
+    Functions calculates answer for part 1 and part2. Answer part 1 is
+    printed to screen. Answer part 2 is returned.
+    """
+    # TODO: refactor to class and put part 1 and part 2 into separate methods.
     food_ingredients: Dict[int, Set] = {}  # maps food IDs to it's ingredients
     allergen_foods = defaultdict(list)  # maps allergens to food IDs
     all_ingredients: Set[str] = set()  # all unique ingredients
@@ -13,7 +18,7 @@ def compute(data: List[str]) -> str:
         raw_allergens = raw_allergens.replace(")", "")
         allergens = raw_allergens.strip().split(", ")
         ingredients = set(raw_ingredients.split(" "))
-        all_ingredients = all_ingredients | ingredients  #
+        all_ingredients = all_ingredients | ingredients
         food_ingredients[food_id] = ingredients
         for al in allergens:
             allergen_foods[al].append(food_id)

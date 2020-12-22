@@ -2,11 +2,11 @@ from collections import defaultdict
 import numpy as np
 import math
 from helpers import file_reader
-from typing import Dict, List
-from pprint import pprint
+from typing import Dict, List, Set
+from time import perf_counter
 
 
-def get_sides_dict(data: List[str]) -> Dict:
+def get_sides_dict(data: List[str]) -> Dict[str, Set]:
     """
     Return dictionary of sets.
         Keys -> tile names
@@ -18,14 +18,15 @@ def get_sides_dict(data: List[str]) -> Dict:
         raw_title = lines[0]
         title = raw_title[5:-1]
         tile = np.array([list(line) for line in lines[1:]])
-        top = tile[0, :]
-        bottom = tile[-1, :]
-        left = tile[:, 0]
-        right = tile[:, -1]
+        top = tile[0, :]  # top row
+        bottom = tile[-1, :]  # bottom row
+        left = tile[:, 0]  # left columns
+        right = tile[:, -1]  # right column
         sides = [top, bottom, left, right]
         possible_sides = set()
         for side in sides:
             possible_sides.add("".join(side))
+            # reversed side, in case the square is flipped
             possible_sides.add("".join(side[::-1]))
         sides_dict[title] = possible_sides
     return sides_dict
@@ -60,8 +61,12 @@ def compute(data: str) -> int:
 
 
 if __name__ == "__main__":
-    t0 = file_reader("AOC20_20_testinput.txt")
+    t0 = file_reader("examples/AOC20_20_example.txt")
     assert compute(t0) == 20899048083289
+    start = perf_counter()
     day20 = file_reader("inputs/2020_20.txt")
     p1 = compute(day20)
+    end = perf_counter()
+    runtime = round((end - start) * 1000, 1)
     print(f"solution part 1: {p1}")
+    print(f"runtime: {runtime}ms")
