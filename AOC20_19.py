@@ -21,6 +21,7 @@ start while loop
     
 """
 
+
 # TODO: Got stuck. Idea: make a new test and try to get it working on that
 # TODO: The problem seems to occur with rules of len 1 (42, 8 etc).
 
@@ -30,7 +31,13 @@ def rules_table(rule_strings):
     rules = {}
     for rule in rule_strings:
         k, v = rule.split(': ')
-        if v[1] in {"a", "b"}:
+        # print(repr(v))
+        if v.isdigit():
+            # TODO: old version, remove if all works
+            # rules[int(k)] = tuple([int(v)])
+            rules[int(k)] = []
+            rules[int(k)].append(tuple([int(v)]))
+        elif "a" in v or "b" in v:
             rules[int(k)] = v[1]
         else:
             possibilities = v.split(' | ')
@@ -55,6 +62,7 @@ class Image:
         for mom, kids in self.rules.items():
             unique = set()
             for kid in kids:
+                # print("kid=", kid)
                 for k in kid:
                     unique.add(k)
             for un in unique:
@@ -86,13 +94,15 @@ class Image:
         frontier.extend(starters)
         while frontier:
             # print("frontier", len(frontier))
-            # print("set(frontier)", len(set(frontier)))
-            # print(frontier)
+            # print("set(frontier)", len(set(f/rontier)))
+            # print("start while loop - frontier:", frontier)
+            # print("start while loop - message_table", message_table)
             current_rule = frontier.popleft()
             # get all rules that need to be present to process current rule
             needs = self.get_children(current_rule)
             all_present = True
             # check if all requirements are present
+            # print("current_rule:", current_rule)
             for req in needs:
                 if req not in message_table:
                     all_present = False
@@ -119,7 +129,8 @@ class Image:
                     # print("current_rule:", current_rule, "rule:", k)
                     v = message_table[k]
                     # print("v", v)
-                    message_table[current_rule] = copy(v)
+                    # message_table[current_rule] = copy(v)
+                    message_table[current_rule] = v
                     # print(f"message_table[{current_rule}]", message_table[current_rule])
                     continue
                 subs_a = message_table[rule[0]]
@@ -132,7 +143,7 @@ class Image:
                         msg = a + b
                         # print(msg)
                         messages.append(msg)
-            message_table[current_rule] = messages
+                message_table[current_rule] = messages
         return message_table
 
 
@@ -166,6 +177,22 @@ aaabbb
 aaaabbb
 """
 
+t2_raw = """
+0: 5 1
+1: 6 7 | 7 6
+5: 88
+6: 88 88 | 99 99
+7: 88 99 | 99 88
+88: "a"
+99: "b"
+
+ababbb
+bababa
+abbbab
+aaabbb
+aaaabbb
+"""
+
 # t0 = Image(t0_raw)
 # print(t0.rules)
 # print(t0.messages)
@@ -184,12 +211,30 @@ t1 = Image(t1_raw)
 # pprint(t1.rule_strings())
 # print()
 
+
+t2 = Image(t2_raw)
+# print(t2.rules)
+# pprint(t2.rule_strings())
+
 day19_raw = file_reader('inputs/2020_19.txt')
 day19 = Image(day19_raw)
 pprint(day19.messages)
-pprint(day19.rules)
-# print(day19.rule_strings())
-# print(day19.rule_strings()[20])
+print(len(day19.messages))
+len_dict = Counter()
+for ms in day19.messages:
+    lm = len(ms)
+    len_dict[lm] += 1
+pprint(len_dict)
+# pprint(day19.rules)
+# all_pos = set(day19.rule_strings()[0])
+# print(all_pos)
+# the_count = 0
+# for m in day19.messages:
+#     if m in all_pos:
+#         the_count += 1
+# print(the_count)
+
+# print(day19.rule_strings()[8])
 # print(day19.rule_strings()[30])
 # print(day19.rule_strings()[5])
 # print(day19.rule_strings()[22])
@@ -199,16 +244,16 @@ pprint(day19.rules)
 # print()
 
 
-rule_42 = day19.rule_strings()[42]
-rule_11 = day19.rule_strings()[11]
-print(len(rule_42))
-print(len(rule_11))
-print(len(rule_42[0]))
-print(len(rule_11[0]))
-rule_0 = set()
-for i, a in enumerate(rule_42):
-    for b in rule_11:
-        rule_0.add(a + b)
+# rule_42 = day19.rule_strings()[42]
+# rule_11 = day19.rule_strings()[11]
+# print(len(rule_42))
+# print(len(rule_11))
+# print(len(rule_42[0]))
+# print(len(rule_11[0]))
+# rule_0 = set()
+# for i, a in enumerate(rule_42):
+#     for b in rule_11:
+#         rule_0.add(a + b)
 # print(rule_42)
 # print(rule_11[0])
 # print(len(rule_0))
