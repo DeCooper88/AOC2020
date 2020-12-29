@@ -10,7 +10,7 @@ def get_input(data_file: str) -> Set[int]:
         return {int(x.strip()) for x in f.readlines()}
 
 
-def compute_one(expenses: Set[int]) -> Optional[int]:
+def compute_p1(expenses: Set[int]) -> Optional[int]:
     """
     Find the 2 entries in expenses that add up to 2020 and return
     their product. Solution part one.
@@ -22,7 +22,7 @@ def compute_one(expenses: Set[int]) -> Optional[int]:
     return None
 
 
-def compute_two(expenses: Set[int]) -> Optional[int]:
+def compute_p2(expenses: Set[int]) -> Optional[int]:
     """
     Find the 3 entries in expenses that add up to 2020 and return
     their product. Solution part two.
@@ -38,16 +38,16 @@ def compute_two(expenses: Set[int]) -> Optional[int]:
 if __name__ == "__main__":
     # test part 1
     t0 = {1721, 979, 366, 299, 675, 1456}
-    assert compute_one(t0) == 514579
+    assert compute_p1(t0) == 514579
     # test part 2
-    assert compute_two(t0) == 241861950
+    assert compute_p2(t0) == 241861950
 
     start = perf_counter()
     day1 = get_input("inputs/2020_1.txt")
     sp1 = perf_counter()
-    p1 = compute_one(day1)
+    p1 = compute_p1(day1)
     sp2 = perf_counter()
-    p2 = compute_two(day1)
+    p2 = compute_p2(day1)
     end = perf_counter()
     time0 = round((sp1 - start) * 1000, 3)
     time1 = round((sp2 - sp1) * 1000, 3)
