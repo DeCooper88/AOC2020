@@ -1,12 +1,12 @@
 import pytest
-import AOC20_4
+import AOC20_04
 
 t0 = 'ecl:gry pid:860033327 eyr:2020 hcl:#fffffd byr:1937 iyr:2017 cid:147 hgt:183cm'
 t1 = 'iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884 hcl:#cfa07d byr:1929'
 t2 = 'hcl:#ae17e1 iyr:2013 eyr:2024 ecl:brn pid:760753108 byr:1931 hgt:179cm'
 t3 = 'hcl:#cfa07d eyr:2025 pid:166559648 iyr:2011 ecl:brn hgt:59in'
 p1_tests = [t0, t1, t2, t3]
-p1_filtered = AOC20_4.pre_filter(p1_tests)
+p1_filtered = AOC20_04.compute_p1(p1_tests)
 
 pc0 = "eyr:1972 cid:100 hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926"
 pc1 = "iyr:2019 hcl:#602927 eyr:1967 hgt:170cm ecl:grn pid:012533040 byr:1946"
@@ -30,11 +30,11 @@ p2_tests = [pc0, pc1, pc2, pc3, pc4, pc5, pc6, pc7]
         (pc7, True),
 ))
 def test_validate_passport(test_input, expected):
-    assert AOC20_4.validate_passport(test_input) == expected
+    assert AOC20_04.validate_passport(test_input) == expected
 
 
-def test_pre_filter():
-    assert AOC20_4.pre_filter(p1_tests, return_count=True) == 2
+def test_compute_p1():
+    assert len(AOC20_04.compute_p1(p1_tests)) == 2
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -51,7 +51,7 @@ def test_pre_filter():
 ))
 def test_valid_byr(test_input, expected):
     """byr (Birth Year) - four digits; at least 1920 and at most 2002."""
-    assert AOC20_4.valid_byr(test_input) == expected
+    assert AOC20_04.valid_byr(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -68,7 +68,7 @@ def test_valid_byr(test_input, expected):
 ))
 def test_valid_iyr(test_input, expected):
     """iyr (Issue Year) - four digits; at least 2010 and at most 2020."""
-    assert AOC20_4.valid_iyr(test_input) == expected
+    assert AOC20_04.valid_iyr(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -85,7 +85,7 @@ def test_valid_iyr(test_input, expected):
 ))
 def test_valid_eyr(test_input, expected):
     """eyr (Expiration Year) - four digits; at least 2020 and at most 2030."""
-    assert AOC20_4.valid_eyr(test_input) == expected
+    assert AOC20_04.valid_eyr(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -95,7 +95,7 @@ def test_valid_eyr(test_input, expected):
         ('190', False),
 ))
 def test_valid_hgt(test_input, expected):
-    assert AOC20_4.valid_hgt(test_input) == expected
+    assert AOC20_04.valid_hgt(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -105,7 +105,7 @@ def test_valid_hgt(test_input, expected):
         ('#666666', True),
 ))
 def test_valid_hcl(test_input, expected):
-    assert AOC20_4.valid_hcl(test_input) == expected
+    assert AOC20_04.valid_hcl(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -115,7 +115,7 @@ def test_valid_hcl(test_input, expected):
         ('hzl', True),
 ))
 def test_valid_ecl(test_input, expected):
-    assert AOC20_4.valid_ecl(test_input) == expected
+    assert AOC20_04.valid_ecl(test_input) == expected
 
 
 @pytest.mark.parametrize('test_input, expected', (
@@ -125,12 +125,12 @@ def test_valid_ecl(test_input, expected):
         ('123456789', True),
 ))
 def test_valid_pid(test_input, expected):
-    assert AOC20_4.valid_pid(test_input) == expected
+    assert AOC20_04.valid_pid(test_input) == expected
 
 
 def test_compute_two_p1():
-    assert AOC20_4.compute_two(p1_filtered) == 2
+    assert AOC20_04.compute_p2(p1_filtered) == 2
 
 
 def test_compute_two_p2():
-    assert AOC20_4.compute_two(p2_tests) == 4
+    assert AOC20_04.compute_p2(p2_tests) == 4

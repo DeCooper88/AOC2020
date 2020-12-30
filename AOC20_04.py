@@ -1,6 +1,11 @@
-from helpers import file_reader
-from typing import Dict, List, Union, Iterable
-import time
+from typing import Dict, Iterable, List
+from time import perf_counter
+
+
+def get_input(data_file: str) -> Iterable[str]:
+    """Import data and yield passport data."""
+    with open(data_file) as f:
+        return (x.replace("\n", " ") for x in f.read().strip().split("\n\n"))
 
 
 def passport_dict(passport: str) -> Dict[str, str]:
@@ -16,7 +21,7 @@ def passport_dict(passport: str) -> Dict[str, str]:
 def contains_all_fields(passport: str) -> bool:
     """Return True if passport contains all the required fields."""
     pw_dict = passport_dict(passport)
-    required_fields = {"byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid"}
+    required_fields = ("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
     for field in required_fields:
         if field not in pw_dict:
             return False
@@ -61,32 +66,34 @@ def valid_hgt(data: str) -> bool:
     return False
 
 
+VALID_HAIRCOLOUR_CHARS = {
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+}
+
+
 def valid_hcl(data: str) -> bool:
     """hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f."""
     if len(data) != 7:
         return False
     if data[0] != "#":
         return False
-    valid_chars = {
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "a",
-        "b",
-        "c",
-        "d",
-        "e",
-        "f",
-    }
     for char in data[1:]:
-        if char not in valid_chars:
+        if char not in VALID_HAIRCOLOUR_CHARS:
             return False
     return True
 
@@ -121,17 +128,21 @@ def validate_passport(passport: str) -> bool:
     return True
 
 
-def pre_filter(
-    passports: Iterable[str], return_count: bool = False
-) -> Union[int, List[str]]:
+def compute_p1(passport_data: Iterable[str]) -> List[str]:
+    """
+    Return list of passports that contain all valid fields. Number of
+    valid passports in list is answer fro part one. List itself is input
+    for part two.
+    """
     valid_passports = []
-    for line in passports:
+    for line in passport_data:
         if contains_all_fields(line):
             valid_passports.append(line)
-    return len(valid_passports) if return_count else valid_passports
+    return valid_passports
 
 
-def compute_two(data: List[str]) -> int:
+def compute_p2(data: List[str]) -> int:
+    """Return number of valid passports. Solution part two."""
     valid = 0
     for pw in data:
         if validate_passport(pw):
@@ -140,20 +151,19 @@ def compute_two(data: List[str]) -> int:
 
 
 if __name__ == "__main__":
-    start_prep = time.perf_counter()
-    day4_raw = file_reader("inputs/2020_4.txt")
-    day4 = (x.replace("\n", " ") for x in day4_raw.split("\n\n"))
-    end_prep = time.perf_counter()
-    all_valid_passports = pre_filter(day4)
+    start = perf_counter()
+    day4 = get_input("inputs/2020_4.txt")
+    sp1 = perf_counter()
+    all_valid_passports = compute_p1(day4)
     p1 = len(all_valid_passports)
-    part_1 = time.perf_counter()
-    p2 = compute_two(all_valid_passports)
-    end = time.perf_counter()
+    sp2 = perf_counter()
+    p2 = compute_p2(all_valid_passports)
+    end = perf_counter()
 
-    prep_time = round((end_prep - start_prep) * 1000, 1)
-    time_p1 = round((part_1 - end_prep) * 1000, 1)
-    time_p2 = round((end - part_1) * 1000, 1)
-    total_time = prep_time + time_p1 + time_p2
-    print(f"Solution part 1: {p1} ({time_p1}ms)")
-    print(f"Solution part 2: {p2} ({time_p2}ms)")
-    print(f"total runtime including importing and cleaning data: {total_time}ms")
+    time0 = round((sp1 - start) * 1000, 3)
+    time1 = round((sp2 - sp1) * 1000, 3)
+    time2 = round((end - sp2) * 1000, 3)
+    total_time = round((end - start) * 1000, 3)
+    print(f"Solution part 1: {p1} ({time1}ms)")
+    print(f"Solution part 2: {p2} ({time2}ms)")
+    print(f"data import took {time0}ms and total runtime is {total_time}ms\n")
