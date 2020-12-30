@@ -38,7 +38,7 @@ def convert_id(boarding_pass: str) -> int:
     bin_id = boarding_pass.translate(mapper)
     row = int(bin_id[:7], 2)
     seat = int(bin_id[7:], 2)
-    return (row * 8) + seat
+    return row * 8 + seat
 
 
 def compute_p1(boarding_passes: Iterable[str], converter: Callable) -> Set[int]:
