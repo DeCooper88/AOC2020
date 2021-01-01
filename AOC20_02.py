@@ -1,8 +1,7 @@
 from typing import List, NamedTuple
 from time import perf_counter
 
-MAPPER = {"-": ",", " ": ",", ":": ""}
-TRANSLATE_TABLE = {ord(k): v for k, v in MAPPER.items()}
+TRANSLATE_TABLE = {ord(k): v for k, v in {"-": ",", " ": ",", ":": ""}.items()}
 
 
 class Password(NamedTuple):
@@ -25,19 +24,6 @@ def get_input(data_file) -> List[Password]:
         return [translate(x.strip()) for x in f.readlines()]
 
 
-def contains_one(password: Password) -> bool:
-    """
-    Return True if password contains correct character in only one of
-    the two given position. Helper function part two.
-    """
-    valid = 0
-    for position in (password.low, password.high):
-        # reduce position by one to account for 0-indexing
-        if password.content[position - 1] == password.char:
-            valid += 1
-    return valid == 1
-
-
 def compute_p1(data: List[Password]) -> int:
     """
     Return number of passwords that comply with policy described
@@ -58,7 +44,10 @@ def compute_p2(data: List[Password]) -> int:
     """
     valid = 0
     for pw in data:
-        if contains_one(pw):
+        # subtract 1 from low/high to account for 1-indexing
+        left_match = pw.content[pw.low - 1] == pw.char
+        right_match = pw.content[pw.high - 1] == pw.char
+        if left_match ^ right_match:  # Exclusive OR (XOR) as need ONE match
             valid += 1
     return valid
 
@@ -76,6 +65,7 @@ if __name__ == "__main__":
 
     start = perf_counter()
     day2 = get_input("inputs/2020_2.txt")
+
     sp1 = perf_counter()
     p1 = compute_p1(day2)
     sp2 = perf_counter()
