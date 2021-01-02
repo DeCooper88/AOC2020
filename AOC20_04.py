@@ -3,7 +3,7 @@ from time import perf_counter
 
 
 def get_input(data_file: str) -> Iterable[str]:
-    """Import data and yield passport data."""
+    """Read file and yield passport data."""
     with open(data_file) as f:
         return (x.replace("\n", " ") for x in f.read().strip().split("\n\n"))
 
@@ -16,16 +16,6 @@ def passport_dict(passport: str) -> Dict[str, str]:
         k, v = line.split(":")
         pp_dict[k] = v
     return pp_dict
-
-
-def contains_all_fields(passport: str) -> bool:
-    """Return True if passport contains all the required fields."""
-    pw_dict = passport_dict(passport)
-    required_fields = ("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
-    for field in required_fields:
-        if field not in pw_dict:
-            return False
-    return True
 
 
 def valid_byr(data: str) -> bool:
@@ -66,34 +56,16 @@ def valid_hgt(data: str) -> bool:
     return False
 
 
-VALID_HAIRCOLOUR_CHARS = {
-    "0",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-}
-
-
 def valid_hcl(data: str) -> bool:
     """hcl (Hair Color) - a # followed by exactly six characters 0-9 or a-f."""
     if len(data) != 7:
         return False
     if data[0] != "#":
         return False
+    valid_haircolour_chars = {'0', '1', '2', '3', '4', '5', '6', '7',
+                              '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'}
     for char in data[1:]:
-        if char not in VALID_HAIRCOLOUR_CHARS:
+        if char not in valid_haircolour_chars:
             return False
     return True
 
@@ -109,43 +81,49 @@ def valid_pid(data: str) -> bool:
     return len(data) == 9 and data.isdigit()
 
 
-def validate_passport(passport: str) -> bool:
-    """Return True if all fields of passport contain valid data."""
-    passport_data = passport_dict(passport)
+def compute_p1(passport_data: Iterable[str]) -> List[Dict[str, str]]:
+    """
+    Return list of passports that contain all valid fields. Number of
+    valid passports in list is answer for part one. List itself is input
+    for part two.
+    """
+    required_fields = ("byr", "iyr", "eyr", "hgt", "hcl", "ecl", "pid")
+    valid_passports = []
+    for line in passport_data:
+        passport = passport_dict(line)
+        contains_all_fields = True
+        for field in required_fields:
+            if field not in passport:
+                contains_all_fields = False
+                break
+        if contains_all_fields:
+            valid_passports.append(passport)
+    return valid_passports
+
+
+def compute_p2(data: List[Dict[str, str]]) -> int:
+    """
+    For every passport check if all 7 passport fields contain valid data.
+    Return number of valid passports. Solution part two.
+    """
     validators = {
+        "pid": valid_pid,
         "byr": valid_byr,
         "iyr": valid_iyr,
         "eyr": valid_eyr,
         "hgt": valid_hgt,
-        "hcl": valid_hcl,
         "ecl": valid_ecl,
-        "pid": valid_pid,
+        "hcl": valid_hcl,
     }
-    for passport_field, validation_function in validators.items():
-        test_input = passport_data[passport_field]
-        if not validation_function(test_input):
-            return False
-    return True
-
-
-def compute_p1(passport_data: Iterable[str]) -> List[str]:
-    """
-    Return list of passports that contain all valid fields. Number of
-    valid passports in list is answer fro part one. List itself is input
-    for part two.
-    """
-    valid_passports = []
-    for line in passport_data:
-        if contains_all_fields(line):
-            valid_passports.append(line)
-    return valid_passports
-
-
-def compute_p2(data: List[str]) -> int:
-    """Return number of valid passports. Solution part two."""
     valid = 0
-    for pw in data:
-        if validate_passport(pw):
+    for passport in data:
+        all_valid = True
+        for passport_field, validation_function in validators.items():
+            test_input = passport[passport_field]
+            if not validation_function(test_input):
+                all_valid = False
+                break
+        if all_valid:
             valid += 1
     return valid
 
