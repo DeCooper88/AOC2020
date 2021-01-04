@@ -1,7 +1,12 @@
-from helpers import file_reader
-from typing import List, NamedTuple, Union
+from typing import Iterable, List, NamedTuple, Union
 from copy import copy
-import time
+from time import perf_counter
+
+
+def get_input(data_file: str) -> Iterable[str]:
+    with open(data_file) as f:
+        for line in f.readlines():
+            yield line.strip()
 
 
 class Instruction(NamedTuple):
@@ -25,7 +30,7 @@ def get_instruction(data: str) -> Instruction:
 
 
 class GameConsole:
-    def __init__(self, program_lines: List[str]) -> None:
+    def __init__(self, program_lines: Iterable[str]) -> None:
         self.lines: List[Instruction] = [get_instruction(x) for x in program_lines]
 
     def first_repeated_line(self) -> int:
@@ -113,25 +118,23 @@ if __name__ == "__main__":
         "jmp -4",
         "acc +6",
     ]
-    # TODO: not used, change into test
-    # t1 = ['nop +0', 'acc +1', 'jmp +4', 'acc +3', 'jmp -3', 'acc -99', 'acc +1', 'nop -4', 'acc +6']
 
     gc0 = GameConsole(t0)
     assert gc0.first_repeated_line() == 5
     assert gc0.find_wrong_line() == 8
 
-    start_prep = time.perf_counter()
-    day8_input = file_reader("inputs/2020_8.txt", output="lines")
-    end_prep = time.perf_counter()
+    start = perf_counter()
+    day8_input = get_input("inputs/2020_8.txt")
+    sp1 = perf_counter()
     day8 = GameConsole(day8_input)
     p1 = day8.first_repeated_line()
-    part_1 = time.perf_counter()
+    sp2 = perf_counter()
     p2 = day8.find_wrong_line()
-    end = time.perf_counter()
-    prep_time = round((end_prep - start_prep) * 1000, 1)
-    time_p1 = round((part_1 - end_prep) * 1000, 1)
-    time_p2 = round((end - part_1) * 1000, 1)
-    total_time = round(prep_time + time_p1 + time_p2, 1)
-    print(f"Solution part 1: {p1} ({time_p1}ms)")
-    print(f"Solution part 2: {p2} ({time_p2}ms)")
-    print(f"total runtime including importing and cleaning data: {total_time}ms")
+    end = perf_counter()
+    time0 = round((sp1 - start) * 1000, 3)
+    time1 = round((sp2 - sp1) * 1000, 3)
+    time2 = round((end - sp2) * 1000, 3)
+    total_time = round((end - start) * 1000, 3)
+    print(f"Solution part 1: {p1} ({time1}ms)")
+    print(f"Solution part 2: {p2} ({time2}ms)")
+    print(f"data import took {time0}ms and total runtime is {total_time}ms\n")
