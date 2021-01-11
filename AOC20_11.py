@@ -1,71 +1,7 @@
 from helpers import file_reader
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 from time import perf_counter
-
-
-def possible_seats(grid, location, target, rc=False):
-    """rc = return count"""
-    height = len(grid)
-    width = len(grid[0])
-    moves = ((-1, -1), (-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1))
-    children = []
-    row, col = location
-    for move in moves:
-        new_row = move[0] + row
-        new_col = move[1] + col
-        on_grid = 0 <= new_row < height and 0 <= new_col < width
-        if not on_grid:
-            continue
-        is_seat = grid[new_row][new_col] == target
-        if is_seat:
-            children.append(move)
-    return len(children) if rc else children
-
-
-def find_seats(grid, sign, maximum=10):
-    """
-    sign can be 'L' for free or '#' for occupied
-    maximum is 10 by default, in which case it neighbours is never
-    higher than maximum, set value to 4 for rule 2
-    """
-    seats = []
-    for row in range(len(grid)):
-        for col in range(len(grid[0])):
-            # check if seat is free/occupied
-            if grid[row][col] == sign:
-                # TODO: refactor, makes function slow
-                # if seat is free/occupied find neighbours
-                neighbours = possible_seats(grid, (row, col), sign, rc=True)
-                if neighbours <= maximum:
-                    seats.append((row, col))
-    return seats
-
-
-def modify_seats(grid, locations, new_value):
-    for row, col in locations:
-        grid[row][col] = new_value
-    return grid
-
-
-def seat_locations(grid):
-    seats = []
-    for row in range(len(grid)):
-        for col in range(len(grid[0])):
-            if grid[row][col] != '.':
-                seats.append((row, col))
-    return seats
-
-
-def compute(data, rounds):
-    # location = seat_locations(data)
-    for i in range(rounds):
-        free_seats = find_seats(data, 'L', maximum=4)
-        busy_seats = find_seats(data, '#', maximum=4)
-        data = modify_seats(data, free_seats, '#')
-        print(data)
-        data = modify_seats(data, busy_seats, 'L')
-    return data
 
 
 class FloorPlan:
@@ -91,12 +27,38 @@ class FloorPlan:
                 seats += 1
         return seats
 
+    def visible_neighbours(self, loc: Tuple, move: Tuple) -> Union[str, bool]:
+        """
+        Return the first seat you see from location in direction of move.
+        Should return:
+            'L' if empty
+            '#' if occupied
+            False if none found
+        """
+        # print("HELLO, you visited visible_neighbours!")
+        row, col = loc
+        new_row = row + move[0]
+        new_col = col + move[1]
+        while True:
+            if new_row >= self.height or new_row < 0:
+                return False
+            elif new_col >= self.width or new_col < 0:
+                return False
+            val = self.grid[new_row][new_col]
+            if val == 'L' or val == '#':
+                return val
+            new_row = new_row + move[0]
+            new_col = new_col + move[1]
+
     def valid_empty_seat(self, location: Tuple) -> bool:
         """
         Return True if seat is free and has no adjacent occupants.
-        Checks rule 1.
+        Checks rule 1 for part 1.
         """
         row, col = location
+        # TODO: fixes bug first version 1, test carefully
+        if self.grid[row][col] == '#' or self.grid[row][col] == '.':
+            return False
         for move in self.moves:
             new_row = move[0] + row
             new_col = move[1] + col
@@ -106,12 +68,34 @@ class FloorPlan:
                 return False
         return True
 
-    def too_many_neighbours(self, location: Tuple) -> bool:
+    def valid_empty_seat_two(self, location: Tuple) -> bool:
         """
-        Return True if seat is occupied and has 4 or more occupied
-        seats adjacent to it. Checks rule 2.
+        Return True if seat is free and has no adjacent occupants.
+        Checks rule 1 for part 2.
         """
         row, col = location
+        if self.grid[row][col] == '#' or self.grid[row][col] == '.':
+            return False
+        for move in self.moves:
+            new_row = move[0] + row
+            new_col = move[1] + col
+            if (new_row, new_col) not in self.seats:
+                continue
+            val = self.visible_neighbours(location, move)
+            # print(f"move: {move}  loc: {(new_row, new_col)}  val: {val}")
+            if val == '#':
+                return False
+        return True
+
+    def too_many_neighbours(self, location: Tuple) -> bool:
+        """
+        Return False if seat is occupied and has 4 or more occupied
+        seats adjacent to it. Checks rule 2 for part 1.
+        """
+        row, col = location
+        # TODO: fixes bug first version 1, test carefully
+        if self.grid[row][col] != '#':
+            return True
         neighbours = 0
         for move in self.moves:
             new_row = move[0] + row
@@ -124,6 +108,28 @@ class FloorPlan:
                     return False
         return True
 
+    def too_many_neighbours_two(self, location: Tuple) -> bool:
+        """
+        Return False if seat is occupied and has 5 or more occupied
+        seats adjacent to it. Checks rule 2 for part 2.
+        """
+        row, col = location
+        # TODO: fixes bug first version 1, test carefully
+        if self.grid[row][col] != '#':
+            return True
+        neighbours = 0
+        for move in self.moves:
+            new_row = move[0] + row
+            new_col = move[1] + col
+            if (new_row, new_col) not in self.seats:
+                continue
+            val = self.visible_neighbours(location, move)
+            if val == '#':
+                neighbours += 1
+                if neighbours > 4:
+                    return False
+        return True
+
     def locations_rule_one(self) -> List[Tuple]:
         """Return list with all locations that agree with rule one."""
         free_seats = []
@@ -132,11 +138,27 @@ class FloorPlan:
                 free_seats.append(loc)
         return free_seats
 
+    def locations_rule_one_p2(self) -> List[Tuple]:
+        """Return list with all locations that agree with rule one."""
+        free_seats = []
+        for loc in self.seats:
+            if self.valid_empty_seat_two(loc):
+                free_seats.append(loc)
+        return free_seats
+
     def locations_rule_two(self) -> List[Tuple]:
         """Return list with all locations that agree with rule two."""
         busy_seats = []
         for loc in self.seats:
             if not self.too_many_neighbours(loc):
+                busy_seats.append(loc)
+        return busy_seats
+
+    def locations_rule_two_p2(self) -> List[Tuple]:
+        """Return list with all locations that agree with rule two."""
+        busy_seats = []
+        for loc in self.seats:
+            if not self.too_many_neighbours_two(loc):
                 busy_seats.append(loc)
         return busy_seats
 
@@ -149,6 +171,17 @@ class FloorPlan:
         for i in range(rounds):
             rule_one_locs = self.locations_rule_one()
             rule_two_locs = self.locations_rule_two()
+            # print("adjustments needed:", len(rule_one_locs), len(rule_two_locs))
+            if len(rule_one_locs) + len(rule_two_locs) == 0:
+                return self.occupied
+            self.apply_changes(rule_one_locs, '#')
+            self.apply_changes(rule_two_locs, 'L')
+            # print("round", i, "occupied =", self.occupied)
+
+    def modify_two(self, rounds: int) -> int:
+        for i in range(rounds):
+            rule_one_locs = self.locations_rule_one_p2()
+            rule_two_locs = self.locations_rule_two_p2()
             print("adjustments needed:", len(rule_one_locs), len(rule_two_locs))
             if len(rule_one_locs) + len(rule_two_locs) == 0:
                 return self.occupied
@@ -156,10 +189,16 @@ class FloorPlan:
             self.apply_changes(rule_two_locs, 'L')
             print("round", i, "occupied =", self.occupied)
 
-    def __repr__(self):
+    def __str__(self):
         floor_plan = ""
         for line in self.grid:
             floor_plan += f"{''.join(line)}\n"
+        return floor_plan
+
+    def __repr__(self):
+        floor_plan = ""
+        for line in self.grid:
+            floor_plan += f"{line}\n"
         return floor_plan
 
 
@@ -198,8 +237,39 @@ t2_raw = """
 .##.##.
 """
 
-# t0 = np.array([list(x.strip()) for x in t0_raw.strip().split()])
+t3_raw = """
+#.##.##.##
+#######.##
+#.#.#..#..
+####.##.##
+#.##.##.##
+#.#####.##
+..#.#.....
+##########
+#.######.#
+#.#####.##
+"""
+
+t4_raw = """
+#.L#.L#.L#
+#LLLLLL.LL
+L.L.L..#..
+##L#.#L.L#
+L.L#.#L.L#
+#.L####.LL
+..#.#.....
+LLL###LLL#
+#.LLLLL#.L
+#.L#LL#.L#
+"""
+
 t0_list = [list(x.strip()) for x in t0_raw.strip().split()]
+t1_list = [list(x.strip()) for x in t1_raw.strip().split()]
+t2_list = [list(x.strip()) for x in t2_raw.strip().split()]
+t3_list = [list(x.strip()) for x in t3_raw.strip().split()]
+t4_list = [list(x.strip()) for x in t4_raw.strip().split()]
+# print(t0_list)
+
 # print(t0)
 # t0_locs = seat_locations(t0)
 # print(t0_locs)
@@ -214,51 +284,40 @@ t0_list = [list(x.strip()) for x in t0_raw.strip().split()]
 # print(t0)
 # print(find_seats(t0, 'L'))
 # print(compute(t0, 1))
-
-t0 = FloorPlan(t0_list)
+# t0 = FloorPlan(t0_list)
 # print(t0)
-# print(t0.height)
-# print(t0.width)
-# print(t0.seats)
-# print(t0.moves)
-# print(t0.valid_empty_seat((0, 0)))
-# print(t0.valid_empty_seat((9, 0)))
-# print(t0.too_many_neighbours((0, 0)))
-# print(t0.too_many_neighbours((1, 1)))
-# print(sorted(t0.locations_rule_two()))
-
-
-# t0.modify(6)
+# t0.modify(2)
+# t0.modify_two(2)
 # print(t0)
 # print(t0.occupied)
-
-
-# t0.modify()
-# print(t0)
-
-"""
-#.#L.L#.##
-#LLL#LL.L#
-L.#.L..#..
-#L##.##.L#
-#.#L.LL.LL
-#.#L#L#.##
-..L.L.....
-#L#L##L#L#
-#.LLLLLL.L
-#.#L#L#.##
-"""
-
-
-
-
-# day11_raw = file_reader('inputs/2020_11.txt', output='lines')
-# day11_list = [list(x) for x in day11_raw]
-# day11 = FloorPlan(day11_list)
-# st = perf_counter()
-# day11.modify(100)
-# end = perf_counter()
 # print()
-# print("secs", end - st)
 
+# t1 = FloorPlan(t1_list)
+# print(t1)
+# print(repr(t1))
+# TODO: move to test file
+# assert t1.visible_neighbours((4, 3), (1, 1)) == '#'
+# assert t1.visible_neighbours((4, 3), (-1, 0)) == '#'
+# assert t1.visible_neighbours((1, 1), (-1, 0)) == False
+# assert t1.visible_neighbours((3, 3), (0, 1)) == False
 
+# t3 = FloorPlan(t3_list)
+# print(t3)
+# print(sorted(t3.locations_rule_two_p2()))
+
+t4 = FloorPlan(t4_list)
+# print(t4)
+# print(t4.valid_empty_seat((3, 8)))
+# print(t4.valid_empty_seat_two((3, 8)))
+
+if __name__ == '__main__':
+    print()
+    print('calculating...')
+    day11_raw = file_reader('inputs/2020_11.txt', output='lines')
+    day11_list = [list(x) for x in day11_raw]
+    day11 = FloorPlan(day11_list)
+    st = perf_counter()
+    p1 = day11.modify(100)
+    end = perf_counter()
+    time1 = round(end - st, 1)
+    print(f'solution part one: {p1} ({time1}ms)')
